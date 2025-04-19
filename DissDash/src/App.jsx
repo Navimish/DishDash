@@ -1,10 +1,14 @@
 import { useState } from "react";
 import Card from "./components/Cards";
+import QRPayment from "./components/QRPayment";
+
 
 function App() {
   const [selectedOutlet, setSelectedOutlet] = useState(null);
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+
 
   // Add cart functions here 
   const removeFromCart = (itemId) => {
@@ -225,15 +229,29 @@ function App() {
                         .toFixed(2)}
                     </span>
                   </div>
-                  <button className="w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-700 hover:cursor-pointer transition-colors font-medium">
-                    Proceed to Checkout
+                  <button
+                      className="w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-700 hover:cursor-pointer transition-colors font-medium"
+                      onClick={() => setShowQR(true)}
+                    >
+                      Proceed to Checkout
                   </button>
+
                 </div>
               </>
             )}
           </div>
         </div>
       )}
+
+   
+      {/* QR Payment Modal */}
+        {showQR && (
+          <QRPayment
+            amount={cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+            onClose={() => setShowQR(false)}
+          />
+        )}
+
     </div>
   );
 }
