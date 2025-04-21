@@ -8,7 +8,8 @@ function App() {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [showQR, setShowQR] = useState(false);
-
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
 
   // Add cart functions here 
   const removeFromCart = (itemId) => {
@@ -23,7 +24,34 @@ function App() {
       )
     );
   };
-
+  const handleCheckout = async () => {
+    const totalAmount = cart.reduce((sum,item) => sum + item.price * item.quantity, 0);
+    const items = cart.map(item => item.name);
+    try{
+      const response = await fetch("http://localhost:5000/create-payment-link", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          amount : totalAmount, 
+          items: items,
+          customer_name:customerName,
+          customer_phone: customerPhone,
+        }),
+      
+      });
+      const data= await response.json();
+      if(response.ok){
+        window.location.href = data.payment_url;
+      }else{
+        alert("Error creating payment link: "+(data.error?.description || "Unknown error"));
+      }
+    } catch(error){
+      console.error("Error creating payment link:", error);
+      alert("Something went wrong TEHEE!");
+    }
+  };
   // menu data for different outlets
   const menuData = {
     SOUTHERN_STORIES: [
@@ -215,8 +243,25 @@ function App() {
                     </div>
                   ))}
                 </div>
-
+                  {/* Customer input begins here */}
                 <div className="border-t pt-4 mt-4">
+                  <div className = "mb-4">
+                    <input
+                      type = "text"
+                      placeholder = "Enter your name"
+                      value = {customerName}
+                      onChange = {(e) => setCustomerName(e.target.value)}
+                      className = "border border-gray-300 rounded-lg p-2 w-full mb-4"
+                    />
+                    <input
+                      type = "text"
+                      placeholder = "Enter your phone number"
+                      value = {customerPhone}
+                      onChange = {(e) => setCustomerPhone(e.target.value)}
+                      className = "w-full p-2 border rounded"
+                    />
+                  </div>
+                  {/* Customer input ends here */}
                   <div className="flex justify-between items-center text-lg font-bold text-gray-800 mb-4">
                     <span>Total:</span>
                     <span>
@@ -229,9 +274,10 @@ function App() {
                         .toFixed(2)}
                     </span>
                   </div>
+                  {/* buttom redirected to payment gateway*/}
                   <button
                       className="w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-700 hover:cursor-pointer transition-colors font-medium"
-                      onClick={() => setShowQR(true)}
+                      onClick = {handleCheckout}
                     >
                       Proceed to Checkout
                   </button>
